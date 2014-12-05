@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <style type="text/css">
+    .product {
+    	display: block;
+    	float: left;
+    	width: 320px;
+    	height: 500px;
+    	overflow: hidden;
+    	margin-bottom: 12px;
+    	text-decoration: none;
+    	color: #6e6e6e;
+    }
+    .message {
+    	text-align: center;
+    	background: #f7f7f7;
+    	padding: 8px;
+    	margin: 8px;
+    	display: none;
+    	color: red;
+    }
+    </style>
+    <script type="text/javascript" src="/javascripts/jquery-2.1.1.min.js"></script>
+  </head>
+  <body>
+  	<%if(typeof message != "undefined" && message) {%>
+  	<div class="message"><%=message%></div>
+  	<script type="text/javascript">
+  		$(".message").fadeIn().fadeOut(3000);
+  	</script>
+  	<%}%>
+    <%products.forEach(function(product) {%>
+    	<a class="product" href="<%=product.url?product.url:"javascript:void(0);"%>">
+    		<p><%=product.title%></p>
+    		<img width="300" src="<%=product.img%>" />
+    		<p>小编推荐：<%=product.recommend_text%></p>
+    		<p><%=product.cur_price%> <del><%=product.origin_price%></del>
+    		 已购买: <%=product.buy_num%>
+    		</p>
+    	</a>
+    <%})%>
+	<%if(products.length == 0) {%>
+		<div class="empty">还没有数据</div>
+	<%}%>
+  </body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <style type="text/css">
+    * {margin: 0; padding: 0;}
+    .product p {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .clearfix:after {
+        display: block;
+        content: '';
+        clear: both;
+        visibility: hidden
+    }    
+    .product {
+    	width: 320px;
+        float: left;
+    	overflow: hidden;
+    	padding: 15px;
+    	color: #6e6e6e;
+        border: 1px solid #ccc;
+        margin:10px;
+    }
+    .add_url_btn {
+        cursor: pointer;
+    }
+    .recommend_text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.5rem;
+        height: 3rem;
+    }
+    .product img {
+        max-height: 310px;
+    }
+    .update_url {padding: 3px; font-size: 14px;}
+    .red {color: red;}
+
+    .header_tab {
+        display: table;
+        width: 100%;
+        background: #e6eef1;            
+    }
+    .header_tab .tab {
+        width: 33.3%;
+        display:table-cell;
+        text-align: center;
+    }
+    .header_tab .tab a {
+        display: block;
+        position: relative;
+        bottom: -1px;
+        margin: 0 10px;
+        padding: 7px 0 5px;
+        font-size: 13px;    
+        text-decoration: none;
+        line-height: 1.25;
+        color: #000;        
+    }
+    .header_tab .tab a.on {
+        border-bottom: 2px solid #e4393c;
+        color: #e4393c;         
+    }   
+    </style>
+    <script type="text/javascript" src="/javascripts/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $(".product").click(function(){
+                var url = $(this).data("url");
+                if(url)
+                    location.href = url;
+            });
+
+            $(".add_url_btn").click(function() {
+                var id = $(this).data("id");
+                var url = $.trim($(this).prev().val());
+                if(url == "") {
+                    if(confirm("确定要清空链接吗？")) {
+                        updateUrl(id, url, this);
+                    }
+                    return;
+                }
+                updateUrl(id, url, this);
+            });
+
+            function updateUrl(id, url, ele) {
+                 $.post("/nine/update_url/" + id, {url: url},
+                     function(response) {
+                        if(response && response.message)
+                        alert(response.message);
+                        var jUrl = $(ele).closest(".product").find(".url");
+                        jUrl.empty();
+                        if(url)
+                            jUrl.append('<p><a href="' + url + '" target="_blank">已有链接，点此查看商品</a></p>');
+                        else
+                            jUrl.append('<p class="red">没有链接</p>');
+                    }, "json").error(function(xhr, status){
+                        alert(xhr.responseText);
+                    });               
+            }
+
+            $(".published").click(function() {
+                var id = $(this).data("id");
+                var _this = this;
+                var published = $(this).prop("checked");
+                 $.post("/nine/update_published/" + id, {published: published},
+                     function(response) {
+                        if(response && response.message) {
+                            alert(published ? "已上线" : "已下线");
+                        }
+                    }, "json").error(function(xhr, status){
+                        alert(xhr.responseText);
+                        $(_this).prop("checked", !published);
+                    });
+            });
+
+/*              $.getJSON("/nine/json/2099?callback=?",    
+              function(data) {  
+                alert(data.length);    
+              });*/             
+        });
+    </script>
+  </head>
+  <body>
+    <div class="header_tab">
+        <div class="tab">
+            <a<%if(published == undefined){%> class="on"<%}%> href="?all">全部</a>
+        </div>
+        <div class="tab">
+            <a<%if(published && published != "false"){%> class="on"<%}%> href="?published=true">已上线</a>
+        </div> 
+        <div class="tab">
+            <a<%if(published != undefined && published =="false"){%> class="on"<%}%> href="?published=false">未上线</a>
+        </div>            
+    </div>  
+    <div class="product_list clearfix">
+    <%products.forEach(function(product) {%>
+    	<div class="product">
+    		<p><%=product.title%></p>
+    		<img width="100%" src="<%=product.img%>" />
+    		<p class="recommend_text">小编推荐：<%=product.recommend_text%></p>
+    		<p><%=product.cur_price%> <del><%=product.origin_price%></del>
+    		 已购买: <%=product.buy_num%>
+    		</p>
+            <div class="url">
+                <%if(product.url){%>
+                <p> <a href="<%=product.url%>" target="_blank">已有链接，点此查看商品</a></p>
+                <%}else{%>
+                <p class="red">没有链接</p>
+                <%}%>
+            </div>
+            <div>
+                <input size="36" class="update_url" placeholder="" />
+                <input class="add_url_btn" data-id="<%=product._id%>" type="button" value="更新链接" />
+            </div>
+            <p>是否上线：
+            <input<%=product.published?" checked": ""%> data-id="<%=product._id%>" class="published" type="checkbox" />
+            </p>
+    	</div>
+    <%})%>
+	<%if(products.length == 0) {%>
+		<div class="empty">还没有数据</div>
+	<%}%>
+    </div>
+  </body>
+</html>
